@@ -1,0 +1,12 @@
+table_add my_ingress.ipv4_match my_ingress.to_port_action 172.16.0.1/32 => 1
+table_add my_ingress.ipv4_match my_ingress.to_port_action 172.16.0.4/32 => 2
+table_add my_ingress.ipv4_match my_ingress.to_port_action 172.16.0.7/32 => 3
+table_add my_ingress.ipv4_match my_ingress.to_port_action 192.168.0.2/32 => 1
+table_add my_ingress.ipv4_match my_ingress.to_port_action 192.168.0.5/32 => 2
+table_add my_ingress.ipv4_match my_ingress.to_port_action 192.168.0.8/32 => 3
+table_add my_ingress.ipv4_match my_ingress.to_port_action 10.0.0.3/32 => 1
+table_add my_ingress.ipv4_match my_ingress.to_port_action 10.0.0.6/32 => 2
+table_add my_ingress.ipv4_match my_ingress.to_port_action 10.0.0.9/32 => 3
+table_add my_ingress.switch_match my_ingress.to_port_action 1 => 1
+table_add my_ingress.switch_match my_ingress.to_port_action 2 => 2
+table_add my_ingress.switch_match my_ingress.to_port_action 3 => 3
