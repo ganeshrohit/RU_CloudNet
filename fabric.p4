@@ -58,6 +58,7 @@ struct headers_t {
 
 struct metadata_t {
     IPv4Address destination_addr;
+    bit<32> marked_color;
 }
 
 error {
@@ -141,6 +142,10 @@ control my_ingress(inout headers_t hdr,
 {
     bool dropped = false;
 
+    direct_meter<bit<32>>(MeterType.packets) flow_one_meter;
+    direct_meter<bit<32>>(MeterType.packets) flow_two_meter;
+    direct_meter<bit<32>>(MeterType.packets) flow_three_meter;
+
     action drop_action() {
         mark_to_drop(standard_metadata);
         dropped = true;
@@ -148,6 +153,18 @@ control my_ingress(inout headers_t hdr,
 
     action to_port_action(bit<9> port) {
         standard_metadata.egress_spec = port;
+    }
+
+    action flow_one_action() {
+        flow_one_meter.read(meta.marked_color);
+    }
+
+    action flow_two_action() {
+        flow_two_meter.read(meta.marked_color);
+    }
+
+    action flow_three_action() {
+        flow_three_meter.read(meta.marked_color);
     }
 
     table ipv4_match {
@@ -174,15 +191,80 @@ control my_ingress(inout headers_t hdr,
         default_action = drop_action;
     }
 
+    table flow_one {
+        key = {
+            hdr.cust.tenant: exact;
+        }
+        actions = {
+            flow_one_action;
+            NoAction;
+        }
+        default_action = NoAction;
+        meters = flow_one_meter;
+        size = 1024;
+    }
+
+    table flow_two {
+        key = {
+            hdr.cust.tenant: exact;
+        }
+        actions = {
+            flow_two_action;
+            NoAction;
+        }
+        default_action = NoAction;
+        meters = flow_two_meter;
+        size = 1024;
+    }
+
+    table flow_three {
+        key = {
+            hdr.cust.tenant: exact;
+        }
+        actions = {
+            flow_three_action;
+            NoAction;
+        }
+        default_action = NoAction;
+        meters = flow_three_meter;
+        size = 1024;
+    }
+
+    table regulate_packets {
+        key = {
+            meta.marked_color: exact;
+        }
+
+        actions = {
+            drop_action;
+            NoAction;
+        }
+        default_action = NoAction;
+        size = 32;
+    }
+
     apply {
 
         if (hdr.cust.isValid()) {
             switch_match.apply();
+            
+            if (hdr.cust.tenant == 1) {
+                flow_one.apply();
+            }
+
+            if (hdr.cust.tenant == 2) {
+                flow_two.apply();
+            }
+
+            if (hdr.cust.tenant == 3) {
+                flow_three.apply();
+            }
+
+            regulate_packets.apply();
+
         } else {
             ipv4_match.apply();
         }
-
-        /* ipv4_match.apply(); */
 
         if (dropped) return;
     }
