@@ -10,3 +10,10 @@ table_add my_ingress.ipv4_match my_ingress.to_port_action 10.0.0.9/32 => 3
 table_add my_ingress.switch_match my_ingress.to_port_action 1 => 1
 table_add my_ingress.switch_match my_ingress.to_port_action 2 => 2
 table_add my_ingress.switch_match my_ingress.to_port_action 3 => 3
+table_add my_ingress.flow_one my_ingress.flow_one_action 1 =>
+meter_array_set_rates flow_one_meter 0.000001:1 0.000002:1
+table_add my_ingress.flow_two my_ingress.flow_two_action 1 =>
+meter_array_set_rates flow_two_meter 0.000001:1 0.000002:1
+table_add my_ingress.flow_three my_ingress.flow_three_action 1 =>
+meter_array_set_rates flow_three_meter 0.000001:1 0.000002:1
+table_add my_ingress.regulate_packets drop_action 2 =>
